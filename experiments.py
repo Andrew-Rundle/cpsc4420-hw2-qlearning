@@ -97,3 +97,31 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.savefig("results/epsilon_decay_sweep.png", dpi=150)
     plt.close()
+
+    #Greedy evaluation, epsilon = 0
+    BEST = {**BASELINE, "epsilon_decay": 0.95}
+    for name, cfg in [("baseline (decay 0.99)", BASELINE), ("best (decay 0.95)", BEST)]:
+        all_r, all_steps, all_ok = [], [], []
+        for seed in range(5):
+            env = gym.make(ENV_ID)
+            agent = QLearningAgent(48, 4, alpha=cfg["alpha"], gamma=cfg["gamma"],
+                                   epsilon=cfg["epsilon"], epsilon_min=cfg["epsilon_min"],
+                                   epsilon_decay=cfg["epsilon_decay"], seed=seed)
+            train(env, agent, n_episodes=cfg["n_episodes"],
+                  max_steps=cfg["max_steps"], seed=seed)
+            for ep in range(30):
+                s, _ = env.reset()
+                total = 0
+                for t in range(200):
+                    s, r, terminated, truncated, _ = env.step(agent.act(s, greedy=True))
+                    total += r
+                    if terminated or truncated:
+                        break
+                all_r.append(total)
+                all_steps.append(t + 1)
+                all_ok.append(terminated)      
+            if seed == 0:
+                np.save(f"results/Q_{name.split()[0]}.npy", agent.Q)
+        print(f"{name}: mean reward {np.mean(all_r):.2f} ± {np.std(all_r):.2f}, "
+              f"success rate {np.mean(all_ok):.0%}, mean steps {np.mean(all_steps):.1f} "
+              f"(150 episodes)")
