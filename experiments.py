@@ -44,6 +44,7 @@ if __name__ == "__main__":
     print("Baseline last 50 episodes mean: ", rewards[:, -50:].mean())
     print("Baseline last 50 mean steps:    ", lengths[:, -50:].mean())
 
+    #Changing Alpha
     plt.figure(figsize=(8, 5))
     for alpha in [0.1, 0.5, 0.9]:
         rewards, lengths = run_experiment({**BASELINE, "alpha": alpha})
@@ -59,4 +60,40 @@ if __name__ == "__main__":
     plt.grid(alpha=0.3)
     plt.tight_layout()
     plt.savefig("results/alpha_sweep.png", dpi=150)
+    plt.close()
+
+    #Changing discount factor
+    plt.figure(figsize=(8, 5))
+    for gamma in [0.5, 0.9, 0.99]:
+        rewards, lengths = run_experiment({**BASELINE, "gamma": gamma})
+        plt.plot(moving_average(rewards.mean(axis=0)), label=f"gamma = {gamma}")
+        print(f"gamma={gamma}: last-100 mean = {rewards[:, -100:].mean():.2f}, "
+              f"last-100 steps = {lengths[:, -100:].mean():.1f}")
+    plt.axhline(-13, color="green", linestyle="--", label="optimal (-13)")
+    plt.xlabel("Training episode")
+    plt.ylabel("Total reward per episode")
+    plt.title("Effect of discount factor on CliffWalking")
+    plt.ylim(-1600, 0)
+    plt.legend()
+    plt.grid(alpha=0.3)
+    plt.tight_layout()  
+    plt.savefig("results/gamma_sweep.png", dpi=150)
+    plt.close()
+
+    #Changing decay
+    plt.figure(figsize=(8, 5))
+    for decay in [0.95, 0.99, 0.999]:
+        rewards, lengths = run_experiment({**BASELINE, "epsilon_decay": decay})
+        plt.plot(moving_average(rewards.mean(axis=0)), label=f"epsilon_decay = {decay}")
+        print(f"decay={decay}: last-100 mean = {rewards[:, -100:].mean():.2f}, "
+              f"last-100 steps = {lengths[:, -100:].mean():.1f}")
+    plt.axhline(-13, color="green", linestyle="--", label="optimal (-13)")
+    plt.xlabel("Training episode")
+    plt.ylabel("Total reward per episode")
+    plt.title("Effect of ε decay on CliffWalking")
+    plt.ylim(-1600, 0)
+    plt.legend()
+    plt.grid(alpha=0.3)
+    plt.tight_layout()
+    plt.savefig("results/epsilon_decay_sweep.png", dpi=150)
     plt.close()
