@@ -30,16 +30,33 @@ def plot_baseline(rewards, path="results/baseline.png"):
     plt.xlabel("Training episode")
     plt.ylabel("Total reward per episode")
     plt.title("Baseline Q-learning on CliffWalking")
-    plt.ylim(-300, 0)
+    plt.ylim(-1600, 0)
     plt.legend()
     plt.grid(alpha=0.3)
     plt.tight_layout()
     plt.savefig(path, dpi=150)
     plt.close()
-    
+
 if __name__ == "__main__":
     rewards, lengths = run_experiment(BASELINE)
     plot_baseline(rewards)
     print("Baseline first 50 episodes mean:", rewards[:, :50].mean())
     print("Baseline last 50 episodes mean: ", rewards[:, -50:].mean())
     print("Baseline last 50 mean steps:    ", lengths[:, -50:].mean())
+
+    plt.figure(figsize=(8, 5))
+    for alpha in [0.1, 0.5, 0.9]:
+        rewards, lengths = run_experiment({**BASELINE, "alpha": alpha})
+        plt.plot(moving_average(rewards.mean(axis=0)), label=f"alpha = {alpha}")
+        print(f"alpha={alpha}: last-100 mean = {rewards[:, -100:].mean():.2f}, "
+              f"last-100 steps = {lengths[:, -100:].mean():.1f}")
+    plt.axhline(-13, color="green", linestyle="--", label="optimal (-13)")
+    plt.xlabel("Training episode")
+    plt.ylabel("Total reward per episode")
+    plt.title("Effect of learning rate on CliffWalking")
+    plt.ylim(-600, 0)
+    plt.legend()
+    plt.grid(alpha=0.3)
+    plt.tight_layout()
+    plt.savefig("results/alpha_sweep.png", dpi=150)
+    plt.close()
